@@ -1,0 +1,49 @@
+<?php
+/**
+ * Channel3 checkout tracking script.
+ *
+ * Rendered on the order success (thank-you) page. The observer stores
+ * order data in the checkout session; this template reads and sends it.
+ *
+ * @var \Channel3\Analytics\Block\CheckoutSuccess $block
+ */
+
+$checkoutData = $block->getCheckoutData();
+if (!$checkoutData) {
+    return;
+}
+
+$checkoutData['endpoint'] = $block->getCheckoutEndpoint();
+$jsonData = json_encode($checkoutData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+?>
+<script type="text/javascript">
+(function() {
+    'use strict';
+
+    var data = <?= /* @noEscape */ $jsonData ?>;
+
+    // Reuse the same client ID from page view tracking for attribution
+    var clientId = null;
+    try {
+        clientId = localStorage.getItem('c3_client_id');
+    } catch (e) {}
+
+    var payload = {
+        event: 'checkout_completed',
+        timestamp: new Date().toISOString(),
+        accountId: data.accountId,
+        clientId: clientId,
+        orderId: data.orderId,
+        totalPrice: data.totalPrice,
+        currencyCode: data.currencyCode,
+        lineItems: data.lineItems
+    };
+
+    fetch(data.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+    }).catch(function() {});
+})();
+</script>

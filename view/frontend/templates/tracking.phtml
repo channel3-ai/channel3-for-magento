@@ -1,0 +1,70 @@
+<?php
+/**
+ * Channel3 tracking script template.
+ *
+ * Injected on all frontend pages via default.xml layout.
+ * Product ID is provided server-side by the Tracking block — no DOM scraping needed.
+ *
+ * @var \Channel3\Analytics\Block\Tracking $block
+ */
+
+$trackingData = $block->getTrackingData();
+$jsonData = json_encode($trackingData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+?>
+<script type="text/javascript">
+(function() {
+    'use strict';
+
+    var C3_CONFIG = <?= /* @noEscape */ $jsonData ?>;
+    var C3_CLIENT_ID_KEY = 'c3_client_id';
+    var pageSent = false;
+
+    function getClientId() {
+        try {
+            var stored = localStorage.getItem(C3_CLIENT_ID_KEY);
+            if (stored) return stored;
+
+            var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+            localStorage.setItem(C3_CLIENT_ID_KEY, id);
+            return id;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function sendPageView() {
+        if (pageSent) return;
+        if (!C3_CONFIG.accountId || !C3_CONFIG.endpoint) return;
+        pageSent = true;
+
+        var payload = {
+            event: 'page_view',
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            pathname: window.location.pathname,
+            referrer: document.referrer || null,
+            title: document.title || null,
+            clientId: getClientId(),
+            accountId: C3_CONFIG.accountId,
+            productId: C3_CONFIG.productId || null,
+            currency: C3_CONFIG.currency || null
+        };
+
+        fetch(C3_CONFIG.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true
+        }).catch(function() {});
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', sendPageView);
+    } else {
+        sendPageView();
+    }
+})();
+</script>

@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Channel3_Analytics::channel3"
+             title="Channel3"
+             module="Channel3_Analytics"
+             sortOrder="100"
+             resource="Channel3_Analytics::channel3"/>
+        <add id="Channel3_Analytics::settings"
+             title="Settings"
+             module="Channel3_Analytics"
+             sortOrder="10"
+             parent="Channel3_Analytics::channel3"
+             action="channel3/settings/index"
+             resource="Channel3_Analytics::settings"/>
+    </menu>
+</config>

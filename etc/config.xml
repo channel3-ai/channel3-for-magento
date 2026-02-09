@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <channel3>
+            <general>
+                <connected>0</connected>
+                <merchant_id/>
+            </general>
+        </channel3>
+    </default>
+</config>

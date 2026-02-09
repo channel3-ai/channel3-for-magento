@@ -1,0 +1,108 @@
+<?php
+/**
+ * Channel3 admin settings page.
+ *
+ * Shows a connect form (when not connected) or connection status + disconnect button.
+ * The connect form takes a 4-character merchant ID from the Channel3 dashboard.
+ * On submit, the module auto-creates a Magento Integration, generates OAuth tokens,
+ * and sends everything to the Channel3 backend.
+ *
+ * @var \Channel3\Analytics\Block\Adminhtml\Settings $block
+ */
+
+$isConnected = $block->isConnected();
+$merchantId = $block->getMerchantId();
+$connectUrl = $block->getConnectUrl();
+$disconnectUrl = $block->getDisconnectUrl();
+$dashboardUrl = $block->getDashboardUrl();
+$formKey = $block->getFormKey();
+?>
+<div class="channel3-settings" style="max-width: 500px; margin: 20px auto;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 24px; margin-bottom: 8px;">Channel3</h1>
+        <p style="color: #666; font-size: 14px;">Product analytics and tracking for your storefront</p>
+    </div>
+
+    <?php if ($isConnected && $merchantId): ?>
+        <!-- Connected state -->
+        <div style="background: #fff; border: 1px solid #d6d6d6; border-radius: 4px; padding: 24px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <span style="display: inline-block; width: 12px; height: 12px; background: #34a853; border-radius: 50%; margin-right: 8px;"></span>
+                <span style="font-size: 16px; font-weight: 600; color: #34a853;">Connected</span>
+            </div>
+
+            <table style="width: 100%; margin-bottom: 20px;">
+                <tr>
+                    <td style="padding: 8px 0; color: #666; width: 160px;">Merchant ID</td>
+                    <td style="padding: 8px 0; font-weight: 600;"><?= $block->escapeHtml($merchantId) ?></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Page View Tracking</td>
+                    <td style="padding: 8px 0; color: #34a853;">&#10003; Active</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #666;">Checkout Tracking</td>
+                    <td style="padding: 8px 0; color: #34a853;">&#10003; Active</td>
+                </tr>
+            </table>
+
+            <div style="display: flex; gap: 12px;">
+                <a href="<?= $block->escapeUrl($dashboardUrl) ?>" target="_blank"
+                   style="display: inline-block; background: #1979c3; color: #fff; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-size: 14px;">
+                    Open Dashboard &#8599;
+                </a>
+
+                <form action="<?= $block->escapeUrl($disconnectUrl) ?>" method="post" style="display: inline;">
+                    <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($formKey) ?>" />
+                    <button type="submit"
+                            onclick="return confirm('Are you sure you want to disconnect from Channel3?')"
+                            style="background: none; border: 1px solid #d6d6d6; color: #666; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                        Disconnect
+                    </button>
+                </form>
+            </div>
+        </div>
+    <?php else: ?>
+        <!-- Not connected state -->
+        <div style="background: #fff; border: 1px solid #d6d6d6; border-radius: 4px; padding: 24px; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; margin-bottom: 16px;">Connect to Channel3</h2>
+
+            <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                Enter your merchant ID from your
+                <a href="https://trychannel3.com/dashboard" target="_blank" style="color: #1979c3;">Channel3 dashboard</a>
+                to connect your store. This will automatically set up catalog sync and storefront tracking.
+            </p>
+
+            <form action="<?= $block->escapeUrl($connectUrl) ?>" method="post">
+                <input type="hidden" name="form_key" value="<?= $block->escapeHtmlAttr($formKey) ?>" />
+
+                <div style="margin-bottom: 16px;">
+                    <label for="channel3_merchant_id" style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px;">
+                        Merchant ID
+                    </label>
+                    <input type="text"
+                           id="channel3_merchant_id"
+                           name="merchant_id"
+                           placeholder="e.g., wC1L"
+                           maxlength="4"
+                           required
+                           style="width: 100%; padding: 10px 12px; border: 1px solid #d6d6d6; border-radius: 4px; font-size: 14px; box-sizing: border-box;" />
+                    <p style="color: #999; font-size: 12px; margin-top: 4px;">
+                        Find this in your Channel3 dashboard under Settings
+                    </p>
+                </div>
+
+                <button type="submit"
+                        style="background: #1979c3; color: #fff; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%;">
+                    Connect to Channel3
+                </button>
+            </form>
+        </div>
+    <?php endif; ?>
+
+    <div style="background: #f8f8f8; border: 1px solid #e8e8e8; border-radius: 4px; padding: 16px; font-size: 13px; color: #666;">
+        <strong>How it works:</strong> When you click Connect, this module automatically creates an API
+        integration, securely sends the credentials to Channel3, and begins tracking product page views
+        and checkout completions on your storefront.
+    </div>
+</div>
