@@ -171,13 +171,10 @@ class IntegrationSetup
     {
         $integrationId = $integration->getId();
 
-        // Use Magento's built-in activation flow which creates consumer + tokens
-        // and sets the integration status to ACTIVE
+        // Set integration to ACTIVE status
         if ($integration->getStatus() != Integration::STATUS_ACTIVE) {
-            $this->integrationService->update([
-                'integration_id' => $integrationId,
-                'status' => Integration::STATUS_ACTIVE,
-            ]);
+            $integration->setStatus(Integration::STATUS_ACTIVE);
+            $integration->save();
         }
 
         // Reload to get consumer ID
@@ -190,10 +187,8 @@ class IntegrationSetup
             $consumerId = $consumer->getId();
 
             // Link consumer to integration
-            $this->integrationService->update([
-                'integration_id' => $integrationId,
-                'consumer_id' => $consumerId,
-            ]);
+            $integration->setConsumerId($consumerId);
+            $integration->save();
         }
 
         // Get consumer credentials
