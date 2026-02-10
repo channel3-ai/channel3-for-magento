@@ -5,6 +5,7 @@
             <general>
                 <connected>0</connected>
                 <merchant_id/>
+                <api_url/>
             </general>
         </channel3>
     </default>
