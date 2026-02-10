@@ -58,7 +58,7 @@ class CheckoutSuccess extends Template
         if ($customUrl) {
             return rtrim($customUrl, '/') . '/v0/magento/pixel/checkout';
         }
-        return 'https://internal.trychannel3.com/v0/magento/pixel/checkout';
+        return 'https://integrations.trychannel3.com/v0/magento/pixel/checkout';
     }
 
     /**

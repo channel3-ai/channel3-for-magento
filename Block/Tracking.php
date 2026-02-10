@@ -104,7 +104,7 @@ class Tracking extends Template
         if ($customUrl) {
             return rtrim($customUrl, '/') . '/v0';
         }
-        return 'https://internal.trychannel3.com/v0';
+        return 'https://integrations.trychannel3.com/v0';
     }
 
     /**

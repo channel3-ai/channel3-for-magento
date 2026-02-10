@@ -293,6 +293,6 @@ class IntegrationSetup
             return rtrim($customUrl, '/');
         }
 
-        return 'https://internal.trychannel3.com';
+        return 'https://integrations.trychannel3.com';
     }
 }

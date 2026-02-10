@@ -1,58 +1,55 @@
-# Mage2 Module Channel3 Analytics
+# Channel3 for Magento
 
-    ``channel3/module-analytics``
+Connect your Magento / Adobe Commerce store to [Channel3](https://trychannel3.com) for product analytics and AI shopping attribution.
 
- - [Main Functionalities](#markdown-header-main-functionalities)
- - [Installation](#markdown-header-installation)
- - [Configuration](#markdown-header-configuration)
- - [Specifications](#markdown-header-specifications)
- - [Attributes](#markdown-header-attributes)
+## What it does
 
-
-## Main Functionalities
-Channel3 inventory sync and tracking for Magento / Adobe Commerce storefronts
+- **Automatic catalog sync** — Creates an API integration so Channel3 can read your product catalog
+- **Page view tracking** — Tracks product page views with server-side product ID injection (no DOM scraping)
+- **Checkout tracking** — Records order completions for conversion attribution
+- **One-click connect** — Enter your Channel3 merchant ID and the module handles the rest
 
 ## Installation
-\* = in production please use the `--keep-generated` option
 
-### Type 1: Zip file
+```bash
+composer require channel3/analytics
+bin/magento module:enable Channel3_Analytics
+bin/magento setup:upgrade
+bin/magento cache:flush
+```
 
- - Unzip the zip file in `app/code/Channel3`
- - Enable the module by running `php bin/magento module:enable Channel3_Analytics`
- - Apply database updates by running `php bin/magento setup:upgrade`\*
- - Flush the cache by running `php bin/magento cache:flush`
+## Setup
 
-### Type 2: Composer
+1. Go to **Channel3** in the Magento admin sidebar
+2. Enter your 4-character merchant ID from your [Channel3 dashboard](https://trychannel3.com/dashboard)
+3. Click **Connect to Channel3**
 
- - Make the module available in a composer repository for example:
-    - private repository `repo.magento.com`
-    - public repository `packagist.org`
-    - public github repository as vcs
- - Add the composer repository to the configuration by running `composer config repositories.repo.magento.com composer https://repo.magento.com/`
- - Install the module composer by running `composer require channel3/module-analytics`
- - enable the module by running `php bin/magento module:enable Channel3_Analytics`
- - apply database updates by running `php bin/magento setup:upgrade`\*
- - Flush the cache by running `php bin/magento cache:flush`
+That's it. The module automatically creates the API integration, sends the credentials to Channel3, and starts tracking page views and checkouts on your storefront.
 
+## Requirements
 
-## Configuration
+- Magento 2.4 or later / Adobe Commerce
+- PHP 8.1+
+- A [Channel3](https://trychannel3.com) account
 
+## How it works
 
+When you click Connect, the module:
 
+1. Creates a Magento Integration with the required API permissions (Catalog, Stores)
+2. Generates OAuth credentials and securely sends them to Channel3
+3. Injects a lightweight tracking script on your storefront pages
+4. On product pages, the product ID is injected server-side (not scraped from the DOM)
+5. On the checkout success page, order details are sent for conversion attribution
 
-## Specifications
+All tracking uses a persistent client ID stored in the shopper's browser to link product views to purchases.
 
- - Block
-	- Tracking > tracking.phtml
+## Support
 
- - Controller
-	- adminhtml > settings/index/index
+- [Channel3 Dashboard](https://trychannel3.com/dashboard)
+- [Channel3 Documentation](https://docs.trychannel3.com)
+- Email: support@trychannel3.com
 
- - Observer
-	- checkout_onepage_controller_success_action > Channel3\Analytics\Observer\Frontend\Checkout\OnepageControllerSuccessAction
+## License
 
-
-## Attributes
-
-
-
+Proprietary — see [LICENSE](LICENSE) for details.
