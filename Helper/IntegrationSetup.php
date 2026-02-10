@@ -8,6 +8,8 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
 use Magento\Integration\Api\OauthServiceInterface;
 use Magento\Integration\Model\Integration;
+use Magento\Integration\Model\Oauth\Token;
+use Magento\Integration\Model\Oauth\TokenFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -40,6 +42,7 @@ class IntegrationSetup
 
     private IntegrationServiceInterface $integrationService;
     private OauthServiceInterface $oauthService;
+    private TokenFactory $tokenFactory;
     private StoreManagerInterface $storeManager;
     private WriterInterface $configWriter;
     private ScopeConfigInterface $scopeConfig;
@@ -48,6 +51,7 @@ class IntegrationSetup
     public function __construct(
         IntegrationServiceInterface $integrationService,
         OauthServiceInterface $oauthService,
+        TokenFactory $tokenFactory,
         StoreManagerInterface $storeManager,
         WriterInterface $configWriter,
         ScopeConfigInterface $scopeConfig,
@@ -55,6 +59,7 @@ class IntegrationSetup
     ) {
         $this->integrationService = $integrationService;
         $this->oauthService = $oauthService;
+        $this->tokenFactory = $tokenFactory;
         $this->storeManager = $storeManager;
         $this->configWriter = $configWriter;
         $this->scopeConfig = $scopeConfig;
@@ -157,33 +162,60 @@ class IntegrationSetup
     /**
      * Activate the integration and return the OAuth tokens.
      *
+     * Creates a consumer (if needed), generates an access token, and explicitly
+     * marks it as authorized so Magento's REST API accepts it.
+     *
      * @return array{consumer_key: string, consumer_secret: string, access_token: string, access_token_secret: string}
      */
     private function activateIntegration(Integration $integration): array
     {
+        $integrationId = $integration->getId();
+
+        // Use Magento's built-in activation flow which creates consumer + tokens
+        // and sets the integration status to ACTIVE
+        if ($integration->getStatus() != Integration::STATUS_ACTIVE) {
+            $this->integrationService->update([
+                'integration_id' => $integrationId,
+                'status' => Integration::STATUS_ACTIVE,
+            ]);
+        }
+
+        // Reload to get consumer ID
+        $integration = $this->integrationService->get($integrationId);
         $consumerId = $integration->getConsumerId();
 
         if (!$consumerId) {
-            // Integration not yet activated — create consumer and access token
-            $this->oauthService->createAccessToken($integration->getConsumerId(), true);
+            // Create consumer if it doesn't exist
+            $consumer = $this->oauthService->createConsumer(['name' => self::INTEGRATION_NAME . '_' . $integrationId]);
+            $consumerId = $consumer->getId();
 
-            // Reload integration to get updated consumer ID
-            $integration = $this->integrationService->get($integration->getId());
-            $consumerId = $integration->getConsumerId();
+            // Link consumer to integration
+            $this->integrationService->update([
+                'integration_id' => $integrationId,
+                'consumer_id' => $consumerId,
+            ]);
         }
 
         // Get consumer credentials
         $consumer = $this->oauthService->loadConsumer($consumerId);
+
+        // Create access token
+        $this->oauthService->createAccessToken($consumerId, true);
         $accessToken = $this->oauthService->getAccessToken($consumerId);
 
         if (!$accessToken) {
-            // Create access token if it doesn't exist
-            $this->oauthService->createAccessToken($consumerId, true);
-            $accessToken = $this->oauthService->getAccessToken($consumerId);
+            throw new \RuntimeException('Failed to generate access tokens for the Integration.');
         }
 
-        if (!$accessToken) {
-            throw new \RuntimeException('Failed to generate access tokens for the Integration.');
+        // CRITICAL: Mark the token as authorized
+        // Without this, Magento's REST API returns 401 for Integration tokens
+        /** @var Token $tokenModel */
+        $tokenModel = $this->tokenFactory->create()->load($accessToken->getToken(), 'token');
+        if ($tokenModel->getId()) {
+            $tokenModel->setData('authorized', 1);
+            $tokenModel->setData('type', 'access');
+            $tokenModel->save();
+            $this->logger->info("Channel3: Token authorized for consumer {$consumerId}");
         }
 
         return [
