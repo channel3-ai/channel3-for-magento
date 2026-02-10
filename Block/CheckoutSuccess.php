@@ -4,7 +4,9 @@ declare(strict_types=1);
 namespace Channel3\Analytics\Block;
 
 use Magento\Checkout\Model\Session as CheckoutSession;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\View\Element\Template;
+use Magento\Store\Model\ScopeInterface;
 
 /**
  * Block for the checkout success (thank-you) page.
@@ -15,16 +17,19 @@ use Magento\Framework\View\Element\Template;
 class CheckoutSuccess extends Template
 {
     private CheckoutSession $checkoutSession;
+    private ScopeConfigInterface $scopeConfig;
     private ?array $checkoutData = null;
     private bool $dataLoaded = false;
 
     public function __construct(
         Template\Context $context,
         CheckoutSession $checkoutSession,
+        ScopeConfigInterface $scopeConfig,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->checkoutSession = $checkoutSession;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -46,6 +51,13 @@ class CheckoutSuccess extends Template
      */
     public function getCheckoutEndpoint(): string
     {
+        $customUrl = $this->scopeConfig->getValue(
+            'channel3/general/api_url',
+            ScopeInterface::SCOPE_STORE
+        );
+        if ($customUrl) {
+            return rtrim($customUrl, '/') . '/v0/magento/pixel/checkout';
+        }
         return 'https://internal.trychannel3.com/v0/magento/pixel/checkout';
     }
 

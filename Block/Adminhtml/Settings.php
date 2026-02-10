@@ -56,7 +56,7 @@ class Settings extends Template
     {
         $merchantId = $this->getMerchantId();
         if ($merchantId) {
-            return 'https://trychannel3.com/brands/' . $merchantId . '/integrations';
+            return 'https://trychannel3.com/brands/' . $merchantId . '/ingest';
         }
         return 'https://trychannel3.com/dashboard';
     }

@@ -93,9 +93,17 @@ class Tracking extends Template
 
     /**
      * Get the Channel3 API base URL.
+     * Reads from config for local dev override, defaults to production.
      */
     public function getApiBaseUrl(): string
     {
+        $customUrl = $this->scopeConfig->getValue(
+            'channel3/general/api_url',
+            ScopeInterface::SCOPE_STORE
+        );
+        if ($customUrl) {
+            return rtrim($customUrl, '/') . '/v0';
+        }
         return 'https://internal.trychannel3.com/v0';
     }
 
